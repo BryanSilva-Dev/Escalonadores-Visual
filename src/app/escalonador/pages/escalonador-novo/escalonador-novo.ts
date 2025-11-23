@@ -180,50 +180,46 @@ export class EscalonadorNovo implements OnInit {
 }
 
 generateChart(eventos: EscalonadorExecucao[], nMedicos: number) {
+  // Mapear IDs dos pacientes para índices sequenciais
+  const pacientesIds = [...new Set(eventos.filter(e => e.idPaciente !== null).map(e => e.idPaciente!))];
+  const pacienteIndexMap = new Map<number, number>();
+  pacientesIds.forEach((id, idx) => pacienteIndexMap.set(id, idx + 1));
+
+  // Mapear médicos com base nos eventos
+  const medicoIds = [...new Set(eventos.filter(e => e.contadorMedico !== null).map(e => e.contadorMedico!))];
+  medicoIds.sort((a, b) => a - b);
+  const medicoIndexMap = new Map<number, number>();
+  medicoIds.forEach((id, idx) => medicoIndexMap.set(id, idx + 1));
+
+  // Todos os momentos
   const momentos = [...new Set(eventos.map(e => e.momento))].sort((a, b) => a - b);
 
   const series: any[] = [];
 
-  for (let medico = 1; medico <= nMedicos; medico++) {
+  for (let medico of medicoIds) {
     const data = momentos.map(momento => {
       const evento = eventos.find(e => e.momento === momento && e.contadorMedico === medico);
-      if (!evento) return 0; // 0 será "Ocioso"
 
-      // Podemos codificar os estados com números diferentes se quiser diferenciar visualmente
-      if (evento.inicio) return evento.idPaciente ?? -1;
-      if (evento.fim) return evento.idPaciente ?? -1;
-      if (evento.espera) return evento.idPaciente ?? -1;
+      if (evento && evento.idPaciente !== null) {
+        return pacienteIndexMap.get(evento.idPaciente)!;
+      }
 
-      return 0; // Ocioso
+      // Retorna undefined para que o ECharts não desenhe nada neste ponto
+      return undefined;
     });
 
     series.push({
-      name: `Médico ${medico}`,
+      name: `Médico ${medicoIndexMap.get(medico)}`,
       type: 'line',
       step: 'middle',
-      data,
-      // opcional: diferenciar cor por médico
-      lineStyle: { width: 2 },
-      symbol: 'circle',
-      symbolSize: 6,
+      connectNulls: false, // Não conecta pontos ausentes
+      data
     });
   }
 
-  // Criar categorias Y: 0 = Ocioso, depois pacientes 1, 2, 3...
-  const pacienteIds = [...new Set(eventos.map(e => e.idPaciente).filter(p => p != null))].sort((a, b) => a - b);
-  const yAxisData = ['Ocioso', ...pacienteIds.map(p => `Paciente ${p}`)];
-
   this.chartOption = {
     title: { text: 'Timeline de Escalonamento' },
-    tooltip: {
-      trigger: 'axis',
-      formatter: (params: any) => {
-        return params.map((p: any) => {
-          const paciente = p.data === 0 ? 'Ocioso' : `Paciente ${p.data}`;
-          return `${p.seriesName} - ${paciente} <br> Momento: ${p.axisValue}`;
-        }).join('');
-      }
-    },
+    tooltip: { trigger: 'axis' },
     legend: { data: series.map(s => s.name) },
     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
     xAxis: {
@@ -232,13 +228,20 @@ generateChart(eventos: EscalonadorExecucao[], nMedicos: number) {
       data: momentos
     },
     yAxis: {
-      type: 'category',
+      type: 'value',
       name: 'Paciente',
-      data: yAxisData
+      min: 0,
+      axisLabel: {
+        formatter: (value: number) => value ? `Paciente ${value}` : ''
+      }
     },
     series
   };
 }
+
+
+
+
 
 
   get isFormValid() {
