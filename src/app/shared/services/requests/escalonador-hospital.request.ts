@@ -2,7 +2,7 @@ import { Escalonador, PrioridadeManchester } from "../models/escalonador-hospita
 import { PacienteStruct } from "../structs/escalonador/escalonador-hospital.struct";
 
 export class EscalonadorHospitalRequest {
-    public idAlgoritmos: number;
+    public idAlgoritmo: number;
     public nMedicos: number;
     public qPacientes: number;
     public listPacientes: PacienteStruct[] = [];

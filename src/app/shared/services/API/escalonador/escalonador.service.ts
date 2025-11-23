@@ -6,7 +6,7 @@ import { environment } from 'src/environments/environment';
 import { ReturnStruct } from '../../structs/system-structs/return.struct';
 import { catchError, Observable } from 'rxjs';
 import { EscalonadorHospitalRequest } from '../../requests/escalonador-hospital.request';
-import { LookupResponse } from '../../responses/escalonador-hospital.response';
+import { EscalonadorHospitalResponse, LookupResponse } from '../../responses/escalonador-hospital.response';
 
 @Injectable({
     providedIn: 'root',
@@ -25,9 +25,9 @@ export class EscalonadorService extends CommonService {
         return this.httpClient.get<LookupResponse>(environment.urlApiBase + 'EscalonadorHospital/Lookups').pipe(catchError(this.handleError));
     }
 
-    public billsReceiveRegister(request: EscalonadorHospitalRequest): Observable<ReturnStruct>
+    public ExecucaoEscalonador(request: EscalonadorHospitalRequest): Observable<EscalonadorHospitalResponse>
     {
-        return this.httpClient.post<ReturnStruct>(environment.urlApiBase + 'EscalonadorHospital', request)
+        return this.httpClient.post<EscalonadorHospitalResponse>(environment.urlApiBase + 'EscalonadorHospital', request)
         .pipe(catchError(this.handleError));
     }
 }
