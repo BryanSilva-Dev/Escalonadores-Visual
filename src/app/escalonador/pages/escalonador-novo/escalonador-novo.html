@@ -1,1 +1,78 @@
-<p>escalonador-novo works!</p>
+<div class="main-container">
+    <form [formGroup]="form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault()">
+        <div class="step-title">
+            <p>ESCALONADOR HOSPITALAR</p>
+        </div>
+        <div class="form-flex">
+            <div class="form-grouped">
+                <div class="form-group">
+                    <div class="select-control" style="width: 100%">
+                        <label class="matt-input-label" for="idAlgoritmo">Algoritmo</label>
+                        <mat-select id="idAlgoritmo" formControlName="idAlgoritmo"
+                            class="input-field">
+                            <div class="option">
+                                <mat-option *ngFor="let algoritmo of listAlgoritmos" [value]="algoritmo.idEscalonador">
+                                    {{ algoritmo.nomeEscalonador }}
+                                </mat-option>
+                            </div>
+                        </mat-select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="input-label">Nº de Médicos</label>
+                    <select class="input-field" formControlName="nMedicos">
+                        <option [ngValue]="1">1</option>
+                        <option [ngValue]="2">2</option>
+                        <option [ngValue]="4">4</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="step-title" style="margin-top:25px;">
+            <p>PACIENTES</p>
+        </div>
+        <div class="paciente-card" *ngFor="let p of pacientes().controls; let i = index" [formGroupName]="i">
+            <div class="paciente-header">
+                <p>Paciente {{ i + 1 }}</p>
+                <button type="button" class="remove-btn" (click)="removePaciente(i)" *ngIf="pacientes().length > 1">
+                    Remover
+                </button>
+            </div>
+            <div class="form-flex">
+                <div class="form-grouped">
+                    <div class="form-group">
+                        <label class="input-label">Tempo de Chegada</label>
+                        <input class="input-field" type="number" min="1" formControlName="tempoChegada">
+                    </div>
+                    <div class="form-group">
+                        <label class="input-label">Duração</label>
+                        <input class="input-field" type="number" min="1" formControlName="duracao">
+                    </div>
+                    <div class="form-group">
+                    <div class="select-control" style="width: 100%">
+                        <label class="matt-input-label" for="idPrioridadeManchester">Prioridade</label>
+                        <mat-select id="idPrioridadeManchester" formControlName="idPrioridadeManchester"
+                            class="input-field" (ngModelChange)="changeAlgoritmo()">
+                            <div class="option">
+                                <mat-option *ngFor="let prioridade of listPrioridades" [value]="prioridade.idPrioridadeManchester">
+                                    {{ prioridade.nomePrioridade }}
+                                </mat-option>
+                            </div>
+                        </mat-select>
+                    </div>
+                </div>
+                    <div class="form-group" *ngIf="form.get('idAlgoritmo')?.value == EscalonadorEnum.RoundRobin">
+                        <label class="input-label">Quantum</label>
+                        <input class="input-field" type="number" min="1" formControlName="quantum">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="add-btn" (click)="addPaciente()">Adicionar Paciente</button>
+        <div class="controller">
+            <button type="submit" [disabled]="!isFormValid" [ngClass]="isFormValid ? 'main-btn' : 'disabled-btn'">
+                EXECUTAR
+            </button>
+        </div>
+    </form>
+</div>
