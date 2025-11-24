@@ -395,6 +395,7 @@ Algoritmo: ${algoritmoNomeGlobal}
     ]
   };
 }
+
   get isFormValid() {
     return this.form.valid;
   }
