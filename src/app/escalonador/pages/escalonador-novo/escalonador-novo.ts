@@ -12,7 +12,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { EscalonadorHospitalRequest } from 'src/app/shared/services/requests/escalonador-hospital.request';
-import { NGX_ECHARTS_CONFIG, NgxEchartsModule } from 'ngx-echarts';import * as echarts from 'echarts/core';
+import { NGX_ECHARTS_CONFIG, NgxEchartsModule } from 'ngx-echarts'; import * as echarts from 'echarts/core';
 import { LineChart } from 'echarts/charts';
 import { TitleComponent, TooltipComponent, GridComponent, LegendComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
@@ -48,7 +48,7 @@ export class EscalonadorNovo implements OnInit {
     private escalonadorService: EscalonadorService,
     private alertService: AlertService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   public form: FormGroup;
   public isLoading: boolean = true;
@@ -140,193 +140,175 @@ export class EscalonadorNovo implements OnInit {
 
   submit() {
 
-  if (this.form.invalid) {
-    this.alertService.show('Ops!', 'Preencha os campos obrigatórios.', AlertType.warning);
-    return;
-  }
+    if (this.form.invalid) {
+      this.alertService.show('Ops!', 'Preencha os campos obrigatórios.', AlertType.warning);
+      return;
+    }
 
-  const formValue = this.form.value;
+    const formValue = this.form.value;
 
-  const request: EscalonadorHospitalRequest = {
-    idAlgoritmo: formValue.idAlgoritmo,
-    nMedicos: formValue.nMedicos,
-    qPacientes: this.pacientes().length,
-    listPacientes: formValue.listPacientes.map((p: any) => ({
-      tempoChegada: p.tempoChegada,
-      duracao: p.duracao,
-      idPrioridadeManchester: p.idPrioridadeManchester,
-      quantum: p.quantum ?? null
-    }))
-  };
+    const request: EscalonadorHospitalRequest = {
+      idAlgoritmo: formValue.idAlgoritmo,
+      nMedicos: formValue.nMedicos,
+      qPacientes: this.pacientes().length,
+      listPacientes: formValue.listPacientes.map((p: any) => ({
+        tempoChegada: p.tempoChegada,
+        duracao: p.duracao,
+        idPrioridadeManchester: p.idPrioridadeManchester,
+        quantum: p.quantum ?? null
+      }))
+    };
 
-  this.escalonadorService.ExecucaoEscalonador(request).subscribe({
-    next: (response) => {
-      if (response.isError) {
-        this.alertService.show('Ops!', response.errorDescription, AlertType.warning);
-        return;
+    this.escalonadorService.ExecucaoEscalonador(request).subscribe({
+      next: (response) => {
+        if (response.isError) {
+          this.alertService.show('Ops!', response.errorDescription, AlertType.warning);
+          return;
+        }
+
+        this.alertService.show('Sucesso!', 'Escalonamento enviado!', AlertType.success);
+        this.isResult = true;
+        this.generateChart(response.eventos, response.execucao.nMedicos, response.execucao);
+        this.cdr.detectChanges();
+        console.log(response);
+      },
+      error: (error) => {
+        this.alertService.show('Erro!', 'Falha ao enviar requisição.', AlertType.warning);
       }
+    });
 
-      this.alertService.show('Sucesso!', 'Escalonamento enviado!', AlertType.success);
-      this.isResult = true;
-      this.generateChart(response.eventos, response.execucao.nMedicos, response.execucao);
-      this.cdr.detectChanges();
-      console.log(response);
-    },
-    error: (error) => {
-      this.alertService.show('Erro!', 'Falha ao enviar requisição.', AlertType.warning);
-    }
-  });
-
-}
-
-generateChart(eventos: any[], nMedicos: number, execucao: any) {
-
-  if (!eventos || eventos.length === 0) {
-    this.chartOption = {};
-    return;
   }
 
-  // Helper: mapeia idAlgoritmo -> nome
-  const getAlgoritmoNome = (id: number) => {
-    switch (id) {
-      case 1: return 'Round-Robin';
-      case 2: return 'SJF';
-      case 3: return 'SRTF';
-      case 4: return 'Prioridade (Não-preemptivo)';
-      default: return `Algoritmo ${id}`;
-    }
-  };
+  generateChart(eventos: any[], nMedicos: number, execucao: any) {
 
-  const algoritmoNomeGlobal = getAlgoritmoNome(execucao.idAlgoritmo);
-
-  // Agrupa execuções por paciente
-  const pacientesMap = new Map<number, {
-    idPaciente: number,
-    execucoes: { start: number, end: number, medico: number, algoritmo: string }[]
-  }>();
-
-  const startEvents = new Map<number, { momento: number, medico: number, algoritmo: string }>();
-
-  // Armazena períodos de espera
-  const esperaMap = new Map<number, { start: number, end: number }[]>();
-  const esperaStart = new Map<number, number>();
-
-  eventos.forEach(ev => {
-
-    // ============= EXECUÇÃO =================
-    if (ev.inicio && ev.contador_medico != null) {
-      // guarda o momento de inicio, o medico e o nome do algoritmo
-      startEvents.set(ev.idPaciente, {
-        momento: ev.momento,
-        medico: ev.contador_medico,
-        algoritmo: getAlgoritmoNome(execucao.idAlgoritmo)
-      });
+    if (!eventos || eventos.length === 0) {
+      this.chartOption = {};
+      return;
     }
 
-    if (ev.fim && startEvents.has(ev.idPaciente)) {
-      const data = startEvents.get(ev.idPaciente)!;
+    const getAlgoritmoNome = (id: number) => {
+      switch (id) {
+        case 1: return 'Round-Robin';
+        case 2: return 'SJF';
+        case 3: return 'SRTF';
+        case 4: return 'Prioridade (Não-preemptivo)';
+        default: return `Algoritmo ${id}`;
+      }
+    };
 
-      if (!pacientesMap.has(ev.idPaciente)) {
-        pacientesMap.set(ev.idPaciente, {
-          idPaciente: ev.idPaciente,
-          execucoes: []
+    const algoritmoNomeGlobal = getAlgoritmoNome(execucao.idAlgoritmo);
+
+    const pacientesMap = new Map<number, {
+      idPaciente: number,
+      execucoes: { start: number, end: number, medico: number, algoritmo: string }[]
+    }>();
+
+    const startEvents = new Map<number, { momento: number, medico: number, algoritmo: string }>();
+
+    const esperaMap = new Map<number, { start: number, end: number }[]>();
+    const esperaStart = new Map<number, number>();
+
+    eventos.forEach(ev => {
+
+      if (ev.inicio && ev.contador_medico != null) {
+        startEvents.set(ev.idPaciente, {
+          momento: ev.momento,
+          medico: ev.contador_medico,
+          algoritmo: getAlgoritmoNome(execucao.idAlgoritmo)
         });
       }
 
-      pacientesMap.get(ev.idPaciente)!.execucoes.push({
-        start: data.momento,
-        end: ev.momento,
-        medico: data.medico,
-        algoritmo: data.algoritmo
-      });
+      if (ev.fim && startEvents.has(ev.idPaciente)) {
+        const data = startEvents.get(ev.idPaciente)!;
 
-      startEvents.delete(ev.idPaciente);
-    }
+        if (!pacientesMap.has(ev.idPaciente)) {
+          pacientesMap.set(ev.idPaciente, {
+            idPaciente: ev.idPaciente,
+            execucoes: []
+          });
+        }
 
-    // ============= ESPERA ====================
-    // marca início de espera
-    if (ev.espera === true && !esperaStart.has(ev.idPaciente)) {
-      esperaStart.set(ev.idPaciente, ev.momento);
-    }
+        pacientesMap.get(ev.idPaciente)!.execucoes.push({
+          start: data.momento,
+          end: ev.momento,
+          medico: data.medico,
+          algoritmo: data.algoritmo
+        });
 
-    // marca fim de espera
-    if (ev.espera === false && esperaStart.has(ev.idPaciente)) {
-      const inicio = esperaStart.get(ev.idPaciente)!;
-      const fim = ev.momento;
+        startEvents.delete(ev.idPaciente);
+      }
 
-      if (!esperaMap.has(ev.idPaciente))
-        esperaMap.set(ev.idPaciente, []);
+      if (ev.espera === true && !esperaStart.has(ev.idPaciente)) {
+        esperaStart.set(ev.idPaciente, ev.momento);
+      }
 
-      esperaMap.get(ev.idPaciente)!.push({ start: inicio, end: fim });
+      if (ev.espera === false && esperaStart.has(ev.idPaciente)) {
+        const inicio = esperaStart.get(ev.idPaciente)!;
+        const fim = ev.momento;
 
-      esperaStart.delete(ev.idPaciente);
-    }
+        if (!esperaMap.has(ev.idPaciente))
+          esperaMap.set(ev.idPaciente, []);
 
-  });
+        esperaMap.get(ev.idPaciente)!.push({ start: inicio, end: fim });
 
-  // Ordena pacientes pelo menor ID (para numerar)
-  const pacientes = Array.from(pacientesMap.values()).sort((a, b) =>
-    a.idPaciente - b.idPaciente
-  );
+        esperaStart.delete(ev.idPaciente);
+      }
 
-  // Gera numeração sequencial
-  const numeroPorPaciente = new Map<number, number>();
-  pacientes.forEach((p, index) => {
-    numeroPorPaciente.set(p.idPaciente, index + 1);
-  });
+    });
 
-  // Rótulos do eixo Y
-  const yAxisData = pacientes.map(p =>
-    `Paciente ${numeroPorPaciente.get(p.idPaciente)}`
-  );
+    const pacientes = Array.from(pacientesMap.values()).sort((a, b) =>
+      a.idPaciente - b.idPaciente
+    );
 
-  // Séries: EXECUÇÃO (verde) — incluímos o médico e o algoritmo no value
-  const execSeries = pacientes.flatMap((p, index) =>
-    p.execucoes.map(exec => ({
-      name: `Paciente ${numeroPorPaciente.get(p.idPaciente)} (Atendimento)`,
-      tipo: 'execucao',
-      value: [
-        index,               // 0 -> y index
-        exec.start,          // 1 -> start
-        exec.end,            // 2 -> end
-        exec.end - exec.start, // 3 -> duração
-        'execucao',          // 4 -> tipo
-        exec.medico,         // 5 -> medico
-        exec.algoritmo       // 6 -> algoritmo nome
-      ]
-    }))
-  );
+    const numeroPorPaciente = new Map<number, number>();
+    pacientes.forEach((p, index) => {
+      numeroPorPaciente.set(p.idPaciente, index + 1);
+    });
 
-  // Séries: ESPERA (cinza)
-  const esperaSeries = pacientes.flatMap((p, index) =>
-    (esperaMap.get(p.idPaciente) || []).map(esp => ({
-      name: `Paciente ${numeroPorPaciente.get(p.idPaciente)} (Espera)`,
-      tipo: 'espera',
-      value: [
-        index,            // 0 -> y index
-        esp.start,        // 1 -> start
-        esp.end,          // 2 -> end
-        esp.end - esp.start, // 3 -> duração
-        'espera'          // 4 -> tipo
-        // note: não há medico/algoritmo para espera
-      ]
-    }))
-  );
+    const yAxisData = pacientes.map(p =>
+      `Paciente ${numeroPorPaciente.get(p.idPaciente)}`
+    );
 
-  const seriesData = [...execSeries, ...esperaSeries];
+    const execSeries = pacientes.flatMap((p, index) =>
+      p.execucoes.map(exec => ({
+        name: `Paciente ${numeroPorPaciente.get(p.idPaciente)} (Atendimento)`,
+        tipo: 'execucao',
+        value: [
+          index,
+          exec.start,
+          exec.end,
+          exec.end - exec.start,
+          'execucao',
+          exec.medico,
+          exec.algoritmo
+        ]
+      }))
+    );
 
-  // =====================
-  // ===== CHART =========
-  // =====================
+    const esperaSeries = pacientes.flatMap((p, index) =>
+      (esperaMap.get(p.idPaciente) || []).map(esp => ({
+        name: `Paciente ${numeroPorPaciente.get(p.idPaciente)} (Espera)`,
+        tipo: 'espera',
+        value: [
+          index,
+          esp.start,
+          esp.end,
+          esp.end - esp.start,
+          'espera'
+        ]
+      }))
+    );
 
-  this.chartOption = {
-    tooltip: {
-      formatter: (params: any) => {
-        const tipo = params.value[4];
-        if (tipo === 'execucao') {
-          const medico = params.value[5];
-          const algoritmo = params.value[6] || algoritmoNomeGlobal;
-          return `
+    const seriesData = [...execSeries, ...esperaSeries];
+
+    this.chartOption = {
+      tooltip: {
+        formatter: (params: any) => {
+          const tipo = params.value[4];
+          if (tipo === 'execucao') {
+            const medico = params.value[5];
+            const algoritmo = params.value[6] || algoritmoNomeGlobal;
+            return `
             <b>${params.name}</b><br>
             Médico: ${medico}<br>
             Algoritmo: ${algoritmo}<br>
@@ -334,21 +316,21 @@ generateChart(eventos: any[], nMedicos: number, execucao: any) {
             Fim: ${params.value[2]}<br>
             Duração: ${params.value[3]}
           `;
-        } else {
-          return `
+          } else {
+            return `
             <b>${params.name}</b><br>
             (Espera)<br>
             Início: ${params.value[1]}<br>
             Fim: ${params.value[2]}<br>
             Duração: ${params.value[3]}
           `;
+          }
         }
-      }
-    },
+      },
 
-    title: {
-      text: 'Linha do Tempo dos Pacientes (Gantt)',
-      subtext: `
+      title: {
+        text: 'Linha do Tempo dos Pacientes (Gantt)',
+        subtext: `
 Média Espera: ${execucao.mediaEspera}
 Média Execução: ${execucao.mediaExecucao}
 Uso CPU: ${execucao.mediaCPU}
@@ -356,45 +338,45 @@ Trocas de Contexto: ${execucao.nTrocasContexto}
 Médicos: ${execucao.nMedicos}
 Algoritmo: ${algoritmoNomeGlobal}
       `.trim()
-    },
+      },
 
-    xAxis: { type: 'value', name: 'Tempo' },
-    yAxis: { type: 'category', data: yAxisData, name: 'Pacientes' },
+      xAxis: { type: 'value', name: 'Tempo' },
+      yAxis: { type: 'category', data: yAxisData, name: 'Pacientes' },
 
-    series: [
-      {
-        type: 'custom',
-        renderItem: (params, api) => {
-          const categoryIndex = api.value(0);
-          const start = api.coord([api.value(1), categoryIndex]);
-          const end = api.coord([api.value(2), categoryIndex]);
-          const height = 28;
+      series: [
+        {
+          type: 'custom',
+          renderItem: (params, api) => {
+            const categoryIndex = api.value(0);
+            const start = api.coord([api.value(1), categoryIndex]);
+            const end = api.coord([api.value(2), categoryIndex]);
+            const height = 28;
 
-          const tipo = api.value(4);
+            const tipo = api.value(4);
 
-          return {
-            type: 'rect',
-            shape: {
-              x: start[0],
-              y: start[1] - height / 2,
-              width: end[0] - start[0],
-              height: height
-            },
-            style: {
-              fill:
-                tipo === 'execucao'
-                  ? '#4caf50'  // verde para atendimento
-                  : '#bdbdbd', // cinza para espera
-              opacity: 0.95
-            }
-          };
-        },
-        encode: { x: [1, 2], y: 0 },
-        data: seriesData
-      }
-    ]
-  };
-}
+            return {
+              type: 'rect',
+              shape: {
+                x: start[0],
+                y: start[1] - height / 2,
+                width: end[0] - start[0],
+                height: height
+              },
+              style: {
+                fill:
+                  tipo === 'execucao'
+                    ? '#4caf50'
+                    : '#bdbdbd',
+                opacity: 0.95
+              }
+            };
+          },
+          encode: { x: [1, 2], y: 0 },
+          data: seriesData
+        }
+      ]
+    };
+  }
 
   get isFormValid() {
     return this.form.valid;
