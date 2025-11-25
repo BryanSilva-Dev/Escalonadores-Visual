@@ -1,0 +1,125 @@
+<div class="container mt-4">
+
+    <form [formGroup]="form" (ngSubmit)="submit()" (keydown.enter)="$event.preventDefault()" *ngIf="!isResult">
+        <div class="mb-4 text-center">
+            <h2 class="text-primary">Escalonador Hospitalar</h2>
+        </div>
+
+        <div *ngIf="!isLoading">
+            <div class="card mb-4">
+                <div class="card-header titulo"><h3>Configurações Gerais</h3></div>
+
+                <div class="card-body">
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <label>Algoritmo</label>
+                            <mat-form-field appearance="fill" class="w-100">
+                                <mat-label>Algoritmo</mat-label>
+                                <mat-select id="idAlgoritmo" formControlName="idAlgoritmo"
+                                    (selectionChange)="updateQuantumValidation()">
+                                    <mat-option *ngFor="let algoritmo of listAlgoritmos"
+                                        [value]="algoritmo.idEscalonador">
+                                        {{ algoritmo.nomeEscalonador }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="form-col">
+                            <label>Nº de médicos</label>
+                            <mat-form-field appearance="fill" class="w-100">
+                                <mat-label>Nº de médicos</mat-label>
+                                <mat-select id="nMedicos" formControlName="nMedicos">
+                                    <mat-option [value]="1">1</mat-option>
+                                    <mat-option [value]="2">2</mat-option>
+                                    <mat-option [value]="3">3</mat-option>
+                                    <mat-option [value]="4">4</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+            <div class="mb-3">
+                <h3 class="text-primary card-header">Pacientes</h3>
+            </div>
+
+            <div formArrayName="listPacientes">
+
+                <div class="card mb-4" *ngFor="let p of pacientes().controls; let i = index" [formGroupName]="i">
+
+                    <div class="card-header d-flex justify-content-between">
+                        <span>Paciente {{ i + 1 }}</span>
+
+                        <button type="button" class="btn btn-danger" (click)="removePaciente(i)"
+                            *ngIf="pacientes().length > 1">
+                            Remover
+                        </button>
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="form-row">
+                            <div class="form-col">
+                                <label>Tempo de Chegada</label>
+                                <mat-form-field appearance="fill" class="w-100">
+                                    <mat-label>Tempo de Chegada</mat-label>
+                                    <input matInput type="number" formControlName="tempoChegada" min="0" />
+                                </mat-form-field>
+                            </div>
+                            <div class="form-col">
+                                <label>Duração</label>
+                                <mat-form-field appearance="fill" class="w-100">
+                                    <mat-label>Duração</mat-label>
+                                    <input matInput type="number" formControlName="duracao" min="1" />
+                                </mat-form-field>
+                            </div>
+                            <div class="form-col">
+                                <label>Prioridade</label>
+                                <mat-form-field appearance="fill" class="w-100">
+                                    <mat-label>Prioridade</mat-label>
+                                    <mat-select formControlName="idPrioridadeManchester">
+                                        <mat-option *ngFor="let prioridade of listPrioridades"
+                                            [value]="prioridade.idPrioridadeManchester">
+                                            {{ prioridade.nomePrioridade }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                            <div class="form-col" *ngIf="form.get('idAlgoritmo')?.value == EscalonadorEnum.RoundRobin">
+                                <label>Quantum</label>
+                                <mat-form-field appearance="fill" class="w-100">
+                                    <mat-label>Quantum</mat-label>
+                                    <input matInput type="number" min="1" formControlName="quantum" />
+                                </mat-form-field>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+            <button type="button" class="btn btn-primary mb-4" (click)="addPaciente()">
+                Adicionar Paciente
+            </button>
+            <div class="text-right">
+                <button type="submit" class="btn btn-success" [disabled]="!isFormValid">
+                    EXECUTAR
+                </button>
+            </div>
+
+        </div>
+
+    </form>
+
+    <div *ngIf="isResult">
+  <h3 class="text-primary">Resultado do Escalonamento</h3>
+  <div echarts [options]="chartOption" class="chart-container" style="height: 400px;"></div>
+</div>
+
+</div>

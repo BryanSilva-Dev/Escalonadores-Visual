@@ -1,0 +1,225 @@
+/* =========================================================
+   RESET BÁSICO MODERNO
+   ========================================================= */
+*,
+*::before,
+*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.5;
+}
+
+/* =========================================================
+   TIPOGRAFIA E LINKS
+   ========================================================= */
+h1, h2, h3, h4, h5 {
+    font-weight: 600;
+}
+
+a {
+    text-decoration: none;
+    color: #0d6efd;
+    transition: 0.2s;
+}
+
+a:hover {
+    color: #0b5ed7;
+}
+
+/* =========================================================
+   LAYOUT
+   ========================================================= */
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    padding: 1rem;
+    margin: auto;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+}
+
+/* =========================================================
+   FORMULÁRIOS – PADRÃO MODERNO
+   ========================================================= */
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #333;
+    font-size: 15px;
+    transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #0d6efd;
+    outline: none;
+    box-shadow: 0 0 3px rgba(13,110,253,0.25);
+}
+
+label {
+    font-weight: 500;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.form-row {
+    margin-bottom: 12px;
+}
+
+/* Select fix para mobile */
+select {
+    appearance: none;
+}
+
+/* =========================================================
+   BOTÕES
+   ========================================================= */
+
+button,
+.btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    background: #0d6efd;
+    color: #fff;
+    font-size: 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover,
+.btn:hover {
+    background: #0b5ed7;
+}
+
+button:disabled,
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =========================================================
+   LISTAS E TABELAS
+   ========================================================= */
+
+ul {
+    list-style: none;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f0f0f0;
+    font-weight: 600;
+}
+
+/* =========================================================
+   UTILITÁRIOS
+   ========================================================= */
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+
+/* =========================================================
+   SCROLLBAR (opcional e discreto)
+   ========================================================= */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c9c9c9;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #b5b5b5;
+}
+
+/* ===== Corrigir estilo dos mat-form-field ===== */
+
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.mdc-text-field--filled,
+.mdc-text-field--focused {
+  background-color: #ffffff !important;
+}
+
+.mdc-text-field__input {
+  color: #333 !important;
+}
+
+.mat-mdc-form-field .mat-mdc-floating-label {
+  color: #666 !important;
+}
+
+.mdc-line-ripple::after {
+  border-bottom-color: #1976d2 !important; /* azul Material padrão */
+}
+
+.mdc-line-ripple::before {
+  border-bottom-color: #ccc !important;
+}
+
+.mat-mdc-select-value {
+  color: #333 !important;
+}
+
+.mat-mdc-select-arrow {
+  color: #333 !important;
+}
+
+.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__input::placeholder {
+  color: #999 !important;
+}
+
+/* Remover interferência de estilos antigos */
+.mat-mdc-form-field input,
+.mat-mdc-form-field select {
+  background: transparent !important;
+  border: none !important;
+}
